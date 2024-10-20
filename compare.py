@@ -71,7 +71,7 @@ def plot_comparison(pretrained_metrics, finetuned_metrics):
     plt.ylim(0, 1)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join('/home/llm-researcher/Desktop/HCMUT/HK241/DATH/plots', "Pre-trained VS Fine-tuned.png"))
+    plt.savefig(os.path.join('/home/llm-researcher/Desktop/HCMUT/HK241/DATH-AI/plots', "Pre-trained VS Fine-tuned.png"))
     plt.show()
     plt.close()
 
