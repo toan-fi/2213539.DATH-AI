@@ -1,0 +1,24 @@
+model:
+  name: "distilbert-base-uncased"
+  output_dir: "./model"
+  checkpoint_dir: "./checkpoints"
+  early_stopping_patience: 3
+
+dataset:
+  name: "imdb"
+  train_split: "train"
+  test_split: "test"
+  batch_size: 4
+  max_seq_length: 512
+
+train:
+  learning_rate: 0.00002
+  epochs: 5
+  weight_decay: 0.01
+  logging_dir: "./logs"
+
+inference:
+  input_file: "input.txt"
+  output_file: "output.txt"
+
+device: "cuda"
