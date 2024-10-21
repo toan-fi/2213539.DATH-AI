@@ -3,6 +3,7 @@ from src.utils import setup_logging, save_checkpoint
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 import csv, yaml
 import os
 import random
@@ -33,14 +34,12 @@ class MetricsLogger(TrainerCallback):
     def __init__(self, log_file='./logs/training_log.csv', plots_dir='./plots'):
         self.log_file = log_file
         self.plots_dir = plots_dir
-        self.train_loss = []  # Store training loss
-        self.eval_accuracy = []  # Store evaluation accuracy
-        self.eval_precision = []  # Store evaluation precision
-        self.eval_recall = []  # Store evaluation recall
-        self.eval_f1 = []  # Store evaluation F1 score
+
+        self.current_loss = None
+        self.current_metrics = {"accuracy": None, "precision": None, "recall": None, "f1": None}
 
         if not os.path.exists(os.path.dirname(self.log_file)):
-            os.makedirs(os.path.dirname(self.log_file))
+            os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
         if not os.path.exists(self.plots_dir):
             os.makedirs(self.plots_dir)
 
@@ -48,33 +47,43 @@ class MetricsLogger(TrainerCallback):
             writer = csv.writer(file)
             writer.writerow(["step", "loss", "accuracy", "precision", "recall", "f1"])
 
+    def log_to_csv(self, state):
+        with open(self.log_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([
+                state.global_step,
+                self.current_loss,
+                self.current_metrics["accuracy"],
+                self.current_metrics["precision"],
+                self.current_metrics["recall"],
+                self.current_metrics["f1"]
+            ])
+        self.current_loss = None
+        self.current_metrics = {"accuracy": None, "precision": None, "recall": None, "f1": None}
+
     def on_log(self, args, state, control, logs=None, **kwargs):
         if logs is not None and "loss" in logs:
-            self.train_loss.append(logs["loss"])
+            self.current_loss = logs.get("loss")
+            # if self.current_metrics["f1"] is not None:
+            #     self.log_to_csv(state)
 
     def on_evaluate(self, args, state, control, metrics=None, **kwargs):
         if metrics is not None:
-            self.eval_accuracy.append(metrics.get("eval_accuracy", None))
-            self.eval_precision.append(metrics.get("eval_precision", None))
-            self.eval_recall.append(metrics.get("eval_recall", None))
-            self.eval_f1.append(metrics.get("eval_f1", None))
+            self.current_metrics["accuracy"] = metrics.get("eval_accuracy", None)
+            self.current_metrics["precision"] = metrics.get("eval_precision", None)
+            self.current_metrics["recall"] = metrics.get("eval_recall", None)
+            self.current_metrics["f1"] = metrics.get("eval_f1", None)
 
-            # Write to CSV after each evaluation step
-            with open(self.log_file, mode='a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([
-                    state.global_step,  # Record the global step number
-                    self.train_loss[-1] if self.train_loss else None,
-                    metrics.get("eval_accuracy", None),
-                    metrics.get("eval_precision", None),
-                    metrics.get("eval_recall", None),
-                    metrics.get("eval_f1", None)
-                ])
+            # If loss is already available, log them all together
+            if self.current_loss is not None:
+                self.log_to_csv(state)
 
     def plot_metrics(self):
+        df = pd.read_csv(self.log_file)
+
         # Plot training loss over steps
-        plt.figure(figsize=(8, 6))
-        plt.plot(range(len(self.train_loss)), self.train_loss, label="Loss", marker='o', color='r')
+        plt.figure(figsize=(14, 8))
+        plt.plot(df['step'], df['loss'], label="Loss", marker='o', color='r')
         plt.title("Training Loss Over Steps")
         plt.xlabel("Steps")
         plt.ylabel("Loss")
@@ -84,12 +93,11 @@ class MetricsLogger(TrainerCallback):
         plt.close()
 
         # Plot evaluation metrics over steps
-        steps = range(1, len(self.eval_accuracy) + 1)
-        plt.figure(figsize=(10, 6))
-        plt.plot(steps, self.eval_accuracy, label="Accuracy", marker='o')
-        plt.plot(steps, self.eval_precision, label="Precision", marker='o')
-        plt.plot(steps, self.eval_recall, label="Recall", marker='o')
-        plt.plot(steps, self.eval_f1, label="F1 Score", marker='o')
+        plt.figure(figsize=(14, 8))
+        plt.plot(df['step'], df['accuracy'], label="Accuracy", marker='o')
+        plt.plot(df['step'], df['precision'], label="Precision", marker='o')
+        plt.plot(df['step'], df['recall'], label="Recall", marker='o')
+        plt.plot(df['step'], df['f1'], label="F1 Score", marker='o')
         plt.title("Evaluation Metrics Over Steps")
         plt.xlabel("Steps")
         plt.ylabel("Score")
@@ -121,8 +129,8 @@ class CustomTrainer:
             num_train_epochs=self.config["train"]["epochs"],
             weight_decay=self.config["train"]["weight_decay"],
             logging_dir='./logs',
-            logging_steps=10,             # Log every 10 steps (loss)
-            save_steps=500,
+            logging_steps=100,             # Log every 10 steps (loss)
+            save_steps=1000,
             save_total_limit=3,
         )
 
