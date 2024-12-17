@@ -15,7 +15,7 @@ class Inference:
         with open(self.config["inference"]["output_file"], "w") as f_out:
             for review in reviews:
                 review = review.strip()
-                if review:  # Only proceed if the line is not empty
+                if review:
                     inputs = self.tokenizer(review, return_tensors='pt', truncation=True, padding=True)
                     with torch.no_grad():
                         outputs = self.model(**inputs)

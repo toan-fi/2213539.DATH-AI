@@ -8,7 +8,6 @@ def setup_logging(logging_dir):
     # Define the log file path
     log_file = os.path.join(logging_dir, 'training.log')
 
-    # Set up logging to file and console
     logging.basicConfig(
         level=logging.INFO,  # Log INFO level and above
         format='%(asctime)s - %(levelname)s - %(message)s',

@@ -1,15 +1,8 @@
-Review: I first saw Fight Club when I was 8 years old. I didn't understand any of it, but I liked the fighting and editing.the film is a fire.
-Predicted sentiment: positive
-
-Review: So rewatchable. The acting is amazing, the story is amazing the second time you watch it, very good acting, funny as well sometimes. Great movie.
-Predicted sentiment: positive
-
-Review: The comparison to Clockwork Orange makes me puke
+Review: This film is good for nothing.
 Predicted sentiment: negative
 
-Review: I have no words about this film. This is masterpiece cult film.
-Predicted sentiment: positive
-
-Review: Most overrated POS on the top 250
+Review: The actors could have done better
 Predicted sentiment: negative
 
+Review: How can people even enjoy watching this film?
+Predicted sentiment: positive

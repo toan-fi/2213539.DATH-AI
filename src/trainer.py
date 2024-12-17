@@ -74,7 +74,6 @@ class MetricsLogger(TrainerCallback):
             self.current_metrics["recall"] = metrics.get("eval_recall", None)
             self.current_metrics["f1"] = metrics.get("eval_f1", None)
 
-            # If loss is already available, log them all together
             if self.current_loss is not None:
                 self.log_to_csv(state)
 
@@ -122,10 +121,10 @@ class CustomTrainer:
     def get_training_args(self):
         return TrainingArguments(
             output_dir='./model',
-            evaluation_strategy="steps",  # Evaluate after a specific number of steps
+            evaluation_strategy="steps",
             eval_steps=100,               # Evaluate every 100 steps
             learning_rate=self.config["train"]["learning_rate"],
-            per_device_train_batch_size=4,
+            per_device_train_batch_size=self.config["train"]["batch_size"],
             num_train_epochs=self.config["train"]["epochs"],
             weight_decay=self.config["train"]["weight_decay"],
             logging_dir='./logs',
